@@ -1,0 +1,9 @@
+# Specifications for PLplot Cairo library
+requires = "lablgtk2"
+requires += "batteries"
+description = "Simple interface to lablgtk2"
+version = "0.1"
+browse_interfaces = " Gtk_light "
+archive(byte) = "gtk_light.cma"
+archive(native) = "gtk_light.cmxa"
+
