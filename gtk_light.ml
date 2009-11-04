@@ -51,12 +51,15 @@ let configure_callback f x = Configure (f x)
 let connect_callback widget event_callback =
   let connect = widget#event#connect in
   (* Connect the callback to the event, ignoring the generated signal id *)
-  let f e_connection e_callback = ignore (e_connection ~callback:e_callback) in
+  let f ?e_add e_connection e_callback =
+    ignore (e_connection ~callback:e_callback);
+    Option.may (fun x -> widget#event#add [x]) e_add;
+  in
   match event_callback with
   | Any a_f -> f connect#any a_f
-  | Button_press b_f -> f connect#button_press b_f
-  | Scroll s_f -> f connect#scroll s_f
-  | Expose e_f -> f connect#expose e_f
+  | Button_press b_f -> f ~e_add:`BUTTON_PRESS connect#button_press b_f
+  | Scroll s_f -> f ~e_add:`SCROLL connect#scroll s_f
+  | Expose e_f -> f ~e_add:`EXPOSURE connect#expose e_f
   | Configure c_f -> f connect#configure c_f
 let connect_callbacks ?callbacks widget =
   Option.may (
@@ -65,6 +68,7 @@ let connect_callbacks ?callbacks widget =
       List.iter (fun callback -> connect_callback widget callback) callbacks;
   ) callbacks
 
+(*
 (** Event box, for capturing input events *)
 let event_box ~callbacks contents =
   let e_box = GBin.event_box () in
@@ -73,6 +77,7 @@ let event_box ~callbacks contents =
   (* Connect event callbacks to the event box *)
   List.iter (fun callback -> connect_callback e_box callback) callbacks;
   e_box
+*)
 
 (* Support for box building *)
 let box f contents =
