@@ -1,6 +1,7 @@
 # Specifications for PLplot Cairo library
 requires = "lablgtk2"
 requires += "batteries"
+requires += "react"
 description = "Simple interface to lablgtk2"
 version = "0.1"
 browse_interfaces = " Gtk_light "

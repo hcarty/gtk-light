@@ -1,15 +1,14 @@
-#directory "_build";;
-#load "gtk_light.cmo";;
 module Gui = Gtk_light
+open React
 open Plcairo
 
 let init_stream width height =
   let plcairo =
-    plinit_cairo ~clear:true ~width ~height plimagecairo None
+    plinit_cairo ~clear:true (width, height) plimagecairo
   in
   let stream =
     P.init ~size:(width, height) (0.0, 0.0) (1.0, 1.0) P.Greedy
-      (P.External plcairo.plstream)
+      (P.External (plget_stream plcairo))
   in
   stream, plcairo
 
@@ -23,7 +22,6 @@ let draw_plot plot =
   P.make_stream_active (fst (S.value plot));
   pllab "x" "y" "title";
   plimage image 0. 1. 0. 1. 0. 0. 0. 1. 0. 1.;
-  P.finish_page 0. 0.;
   ()
 
 let end_plot plot =
@@ -36,20 +34,20 @@ let redraw plot set_plot widget expose_event =
     let { Gtk.width = widget_width; Gtk.height = widget_height } =
       widget#misc#allocation
     in
-    let cairo = snd (S.value plot) in
-    if cairo.width <> foi widget_width || cairo.height <> foi widget_height then (
+    let (_, cairo) = S.value plot in
+    let plwidth, plheight = plget_dims cairo in
+    if plwidth <> foi widget_width || plheight <> foi widget_height then (
       end_plot plot;
       set_plot (init_stream widget_width widget_height);
       draw_plot plot;
     );
-    let dim =
+    let scale_by =
       if widget_width < widget_height then
         `width (foi widget_width)
       else
         `height (foi widget_height)
     in
-    plblit_to_cairo ~dest:(Cairo_lablgtk.create widget#misc#window)
-      ~dim ~xoff:0.0 ~yoff:0.0 (snd (S.value plot));
+    plblit_to_cairo ~scale_by cairo (Cairo_lablgtk.create widget#misc#window);
   );
   true
 

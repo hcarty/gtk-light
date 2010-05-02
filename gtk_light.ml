@@ -1,3 +1,7 @@
+open Batteries
+
+module Signal = Signal
+
 (** A simple, coercible widget *)
 type widget_t = GObj.widget
 
@@ -96,10 +100,21 @@ let drawing_area ?callbacks width height =
   simplify area
 
 (** Slider *)
-let slider ?callbacks ~lower ~upper ~step ~init orientation =
+let slider ?callbacks ?signal ?init ?step orientation (lower, upper) =
   let s = GRange.scale `HORIZONTAL ~draw_value:false () in
-  s#adjustment#set_bounds ~lower ~upper ~step_incr:step ();
-  s#adjustment#set_value init;
+  s#adjustment#set_bounds ~lower ~upper ?step_incr:step ();
+  (* Create a signal which tracks changes in the slider *)
+  let signal =
+    (* Default to the lowest value if not initializing value is provided. *)
+    let init = Option.default lower init in
+    Signal.trace s#adjustment#set_value (
+      Option.default (Signal.init init) signal
+    )
+  in
+  (* Make sure the slider and the signal stay synchronized *)
+  ignore (
+    s#connect#value_changed (fun () -> Signal.set signal s#adjustment#value)
+  );
   Option.may (
     fun callbacks ->
       List.iter (
@@ -107,4 +122,4 @@ let slider ?callbacks ~lower ~upper ~step ~init orientation =
           ignore (s#connect#value_changed (fun () -> callback s))
       ) callbacks;
   ) callbacks;
-  simplify s
+  simplify s, signal

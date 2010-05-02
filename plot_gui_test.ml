@@ -1,8 +1,7 @@
-(* A GUI for stained-glass SpecVD analysis *)
-
-open Mylib, General
-open Plot, Plcairo
-module P = Easy_plot
+open Batteries
+open Plplot
+open Plcairo
+module P = Plot
 module G = Gtk_light
 
 (** Get a Cairo context from the Gtk drawing area. *)
@@ -16,8 +15,7 @@ module Widget_funcs = struct
     let { Gtk.width = width ; Gtk.height = height } = area#misc#allocation in
     let width = float_of_int width in
     let height = float_of_int height in
-    plblit_to_cairo
-      ~dest:cr ~dim:(`both (width, height)) ~xoff:0.0 ~yoff:0.0 plcairo;
+    plblit_to_cairo ~scale_by:(`both (width, height)) plcairo cr;
     false
 end
 
@@ -32,17 +30,19 @@ let main =
 
   (* Make a simple plot of the continents. *)
   let world_map =
-    plinit_cairo
-      ~clear:true ~width:plot_width ~height:plot_height
-      plimagecairo None
+    plinit_cairo ~clear:true (plot_width, plot_height) plimagecairo
   in
   let map_plot =
-    P.init 0.0 1.0 0.0 1.0 P.Greedy (P.External world_map.plstream)
+    P.init (0.0, 0.0) (1.0, 1.0) P.Greedy (P.External (plget_stream world_map))
   in
-  let m = Array.Matrix.init 100 100 (fun i j -> foi (i + j)) in
-  P.plot ~stream:map_plot [P.image {x = 0.0; y = 0.0} {x = 1.0; y = 1.0} m];
-  P.label ~stream:map_plot "X" "Y" "Colors!";
-  P.finish_page ~stream:map_plot 0.0 0.0;
+  let m =
+    Array.init 100 (fun i -> Array.init 100 (fun j -> float_of_int (i + j)))
+  in
+  P.plot ~stream:map_plot [
+    P.image (0.0, 0.0) (1.0, 1.0) m;
+    P.label "X" "Y" "Colors!";
+    P.default_axes;
+  ];
 
   let exposed area x =
     Widget_funcs.redraw area world_map x

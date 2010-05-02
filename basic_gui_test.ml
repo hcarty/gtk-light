@@ -1,5 +1,5 @@
 (* A simple test GUI for the Gtk_light library *)
-module Gui = Gtk_light
+open Gtk_light
 
 (** Draw a line diagonally across the entire given drawing area. *)
 let widget_exposed area _ =
@@ -12,7 +12,6 @@ let widget_exposed area _ =
 let () =
   (* The window will contain two drawing areas, one next to the other. *)
   let window_content =
-    open Gui in
     hbox [
       drawing_area 200 200 ~callbacks:[
         expose_callback widget_exposed;
@@ -23,5 +22,5 @@ let () =
     ]
   in
   (* Make the window and run the main Gtk+ loop *)
-  let w = Gui.window ~title:"Gtk_light Test" window_content in
-  Gui.run [w]
+  let w = window ~title:"Gtk_light Test" window_content in
+  run [w]

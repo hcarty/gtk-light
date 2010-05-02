@@ -1,3 +1,12 @@
+module Signal : sig
+  type 'a t = { signal : 'a React.signal; setter : 'a -> unit; }
+
+  val init : 'a -> 'a t
+  val get : 'a t -> 'a
+  val set : 'a t -> 'a -> unit
+  val trace : ('a -> unit) -> 'a t -> 'a t
+end
+
 (** Abstract widget and window types *)
 type widget_t
 type window_t
@@ -46,8 +55,11 @@ val drawing_area :
   ?callbacks:(GMisc.drawing_area -> event_callback_t) list ->
   int -> int -> widget_t
 
-(** Slider widget for adjusting a value *)
+(** Slider widget for adjusting a value.  If [signal] is provided then the
+    value of that signal will follow the slider's value.  *)
 val slider :
   ?callbacks:(GRange.scale -> unit) list ->
-  lower:float -> upper:float -> step:float -> init:float ->
-  Gtk.Tags.orientation -> widget_t
+  ?signal:float Signal.t ->
+  ?init:float ->
+  ?step:float ->
+  Gtk.Tags.orientation -> (float * float) -> widget_t * float Signal.t
