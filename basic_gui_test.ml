@@ -1,4 +1,5 @@
 (* A simple test GUI for the Gtk_light library *)
+open Batteries
 open Gtk_light
 
 (** Draw a line diagonally across the entire given drawing area. *)
