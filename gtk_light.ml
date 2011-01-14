@@ -123,3 +123,21 @@ let slider ?callbacks ?signal ?init ?step orientation (lower, upper) =
       ) callbacks;
   ) callbacks;
   simplify s, signal
+
+(** Text combo-box *)
+let combo_box_text ?callbacks strings =
+  let (combo, _) as combo_full = GEdit.combo_box_text ~strings () in
+  Option.may (
+    fun callbacks ->
+      List.iter (
+        fun callback ->
+          ignore (
+            combo#connect#changed (
+              fun () ->
+                callback (GEdit.text_combo_get_active combo_full)
+            )
+          )
+      ) callbacks;
+  ) callbacks;
+  simplify combo
+

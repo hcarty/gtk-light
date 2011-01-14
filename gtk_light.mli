@@ -63,3 +63,8 @@ val slider :
   ?init:float ->
   ?step:float ->
   Gtk.Tags.orientation -> (float * float) -> widget_t * float Signal.t
+
+(** Text-only combo box *)
+val combo_box_text :
+  ?callbacks:(string option -> unit) list -> string list -> widget_t
+
