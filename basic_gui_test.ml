@@ -10,15 +10,22 @@ let widget_exposed area _ =
   Gdk.Draw.line drawable gc 0 0 width height;
   true
 
+(** Print the selected string to the terminal *)
+let selected s =
+  Option.may print_endline s
+
 let () =
   (* The window will contain two drawing areas, one next to the other. *)
   let window_content =
-    hbox [
-      drawing_area 200 200 ~callbacks:[
-        expose_callback widget_exposed;
-      ];
-      drawing_area 200 200 ~callbacks:[
-        expose_callback widget_exposed;
+    vbox [
+      combo_box_text ~callbacks:[selected] ["Entry 1"; "Entry 2"];
+      hbox [
+        drawing_area 200 200 ~callbacks:[
+          expose_callback widget_exposed;
+        ];
+        drawing_area 200 200 ~callbacks:[
+          expose_callback widget_exposed;
+        ];
       ];
     ]
   in
