@@ -13,15 +13,17 @@ all: byte opt
 byte:
 	$(OCAMLBUILD) $(LIBRARY).cma
 opt:
-	$(OCAMLBUILD) $(LIBRARY).cmxa
+	$(OCAMLBUILD) $(LIBRARY).cmxa $(LIBRARY).cmxs
 
 # (Un)Installation using ocamlfind
 install:
 	$(OCAMLFIND) install $(LIBRARY) \
 	    META \
+	    $(BUILD_DIR)$(LIBRARY).mli \
 	    $(BUILD_DIR)${LIBRARY}.cmi \
 	    $(BUILD_DIR)${LIBRARY}.cma \
 	    $(BUILD_DIR)${LIBRARY}.cmxa \
+	    $(BUILD_DIR)${LIBRARY}.cmxs \
 	    $(BUILD_DIR)${LIBRARY}.a
 uninstall:
 	$(OCAMLFIND) remove $(LIBRARY)
