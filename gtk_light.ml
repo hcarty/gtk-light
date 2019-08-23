@@ -1,5 +1,3 @@
-open Batteries
-
 module Signal = Signal
 
 (** A simple, coercible widget *)
@@ -18,10 +16,10 @@ let simplify w = w#coerce
 let to_gtk_widget w = GObj.as_widget w
 
 (** The base Gtk+ window *)
-let window ?callbacks ~title content =
+let window ?(callbacks = []) ~title content =
   let w = GWindow.window ~title () in
-  ignore (w#connect#destroy GMain.quit);
-  Option.may (List.iter (fun f -> ignore (w#connect#destroy f))) callbacks;
+  let _ : GtkSignal.id = w#connect#destroy ~callback:GMain.quit in
+  List.iter (fun f -> ignore (w#connect#destroy ~callback:f)) callbacks;
   w#add content;
   w
 
@@ -51,12 +49,25 @@ let scroll_callback f x = Scroll (f x)
 let expose_callback f x = Expose (f x)
 let configure_callback f x = Configure (f x)
 
+module Option = struct
+  let may f o =
+    match o with
+    | None -> ()
+    | Some x -> f x
+
+  let default def o =
+    match o with
+    | None -> def
+    | Some x -> x
+end
+
+(*
 (** HIDDEN - For use in connecting callbacks to events *)
 let connect_callback widget event_callback =
   let connect = widget#event#connect in
   (* Connect the callback to the event, ignoring the generated signal id *)
   let f ?e_add e_connection e_callback =
-    ignore (e_connection ~callback:e_callback);
+    e_connection ~callback:e_callback;
     Option.may (fun x -> widget#event#add [x]) e_add;
   in
   match event_callback with
@@ -72,7 +83,6 @@ let connect_callbacks ?callbacks widget =
       List.iter (fun callback -> connect_callback widget callback) callbacks;
   ) callbacks
 
-(*
 (** Event box, for capturing input events *)
 let event_box ~callbacks contents =
   let e_box = GBin.event_box () in
@@ -93,15 +103,17 @@ let box f contents =
 let vbox contents = box GPack.vbox contents
 let hbox contents = box GPack.hbox contents
 
+(*
 (** Drawing area *)
 let drawing_area ?callbacks width height =
   let area = GMisc.drawing_area ~width ~height () in
   connect_callbacks ?callbacks area;
   simplify area
+*)
 
 (** Slider *)
 let slider ?callbacks ?signal ?init ?step orientation (lower, upper) =
-  let s = GRange.scale `HORIZONTAL ~draw_value:false () in
+  let s = GRange.scale orientation ~draw_value:false () in
   s#adjustment#set_bounds ~lower ~upper ?step_incr:step ();
   (* Create a signal which tracks changes in the slider *)
   let signal =
@@ -113,13 +125,14 @@ let slider ?callbacks ?signal ?init ?step orientation (lower, upper) =
   in
   (* Make sure the slider and the signal stay synchronized *)
   ignore (
-    s#connect#value_changed (fun () -> Signal.set signal s#adjustment#value)
+    s#connect#value_changed
+      ~callback:(fun () -> Signal.set signal s#adjustment#value)
   );
   Option.may (
     fun callbacks ->
       List.iter (
         fun callback ->
-          ignore (s#connect#value_changed (fun () -> callback s))
+          ignore (s#connect#value_changed ~callback:(fun () -> callback s))
       ) callbacks;
   ) callbacks;
   simplify s, signal
@@ -132,7 +145,7 @@ let combo_box_text ?callbacks strings =
       List.iter (
         fun callback ->
           ignore (
-            combo#connect#changed (
+            combo#connect#changed ~callback:(
               fun () ->
                 callback (GEdit.text_combo_get_active combo_full)
             )

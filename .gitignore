@@ -1,0 +1,7 @@
+# OCaml files
+_build/
+.merlin
+*.install
+
+# vim files
+*.swp

@@ -50,10 +50,12 @@ val configure_callback :
 val vbox : widget_t list -> widget_t
 val hbox : widget_t list -> widget_t
 
+(*
 (** Drawing area widget which can be used for custom widgets *)
 val drawing_area :
   ?callbacks:(GMisc.drawing_area -> event_callback_t) list ->
   int -> int -> widget_t
+*)
 
 (** Slider widget for adjusting a value.  If [signal] is provided then the
     value of that signal will follow the slider's value.  *)

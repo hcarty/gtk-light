@@ -1,0 +1,10 @@
+(library
+ (name gtk_light)
+ (public_name gtk-light)
+ (modules gtk_light signal)
+ (libraries lablgtk3 react))
+
+(executable
+ (name basic_gui_test)
+ (modules basic_gui_test)
+ (libraries gtk-light))
